@@ -12,7 +12,7 @@
 
 ## 🛠️ 기술 스택
 
-- **Backend**: Python 3.x, Flask
+- **Backend**: Python 3.x, FastAPI
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **AI**: OpenAI GPT-3.5-turbo
 - **기타**: python-dotenv (환경변수 관리)
@@ -87,7 +87,7 @@ python app.py
 
 ```
 AI_Interview_System/
-├── app.py                 # Flask 애플리케이션 메인 파일
+├── app.py                 # FastAPI 애플리케이션 메인 파일
 ├── requirements.txt       # Python 의존성 패키지
 ├── .env.example          # 환경 변수 예시 파일
 ├── .gitignore            # Git 제외 파일 목록
@@ -117,15 +117,6 @@ AI_Interview_System/
 1. [OpenAI 플랫폼](https://platform.openai.com/)에 가입합니다.
 2. API Keys 섹션에서 새 API 키를 생성합니다.
 3. 생성된 키를 `.env` 파일의 `OPENAI_API_KEY`에 설정합니다.
-
-### Flask Secret Key 생성
-
-Python에서 다음 명령으로 랜덤 시크릿 키를 생성할 수 있습니다:
-
-```python
-import secrets
-print(secrets.token_hex(16))
-```
 
 ## 🔒 보안 고려사항
 
