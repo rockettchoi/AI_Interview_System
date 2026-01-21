@@ -62,6 +62,7 @@ cp .env.example .env
 ```
 OPENAI_API_KEY=your_actual_openai_api_key_here
 FLASK_SECRET_KEY=your_random_secret_key_here
+FLASK_DEBUG=True  # 개발 환경에서만 True, 프로덕션에서는 False로 설정
 ```
 
 ### 5. 애플리케이션 실행

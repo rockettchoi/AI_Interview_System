@@ -196,4 +196,6 @@ Keep the feedback concise and professional (max 150 words)."""
         return f"Thank you for your answer. Your response has been recorded."
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use debug mode only in development, disable in production
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 'yes')
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
