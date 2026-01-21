@@ -33,7 +33,7 @@ pip install -r requirements.txt -q
 # Run the application
 echo ""
 echo "======================================"
-echo "Starting Flask application..."
+echo "Starting FastAPI application..."
 echo "======================================"
 echo "Access the application at: http://localhost:5000"
 echo "Press Ctrl+C to stop the server"
