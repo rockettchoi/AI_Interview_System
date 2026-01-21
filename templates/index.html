@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 모의면접 시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 AI 모의면접 시스템</h1>
+            <p class="subtitle">AI와 함께하는 실전 면접 연습</p>
+        </header>
+
+        <div id="start-section" class="section">
+            <div class="card">
+                <h2>면접 시작하기</h2>
+                <form id="interview-form">
+                    <div class="form-group">
+                        <label for="position">지원 직무:</label>
+                        <select id="position" name="position" required>
+                            <option value="Software Engineer">소프트웨어 엔지니어</option>
+                            <option value="Frontend Developer">프론트엔드 개발자</option>
+                            <option value="Backend Developer">백엔드 개발자</option>
+                            <option value="Full Stack Developer">풀스택 개발자</option>
+                            <option value="Data Scientist">데이터 사이언티스트</option>
+                            <option value="DevOps Engineer">DevOps 엔지니어</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="level">경력 수준:</label>
+                        <select id="level" name="level" required>
+                            <option value="Junior">주니어 (0-2년)</option>
+                            <option value="Mid-level">중급 (3-5년)</option>
+                            <option value="Senior">시니어 (5년+)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">면접 시작</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="interview-section" class="section" style="display: none;">
+            <div class="card">
+                <div class="question-header">
+                    <span class="question-number">질문 <span id="question-num">1</span>/5</span>
+                </div>
+                <div class="question-box">
+                    <h3>질문:</h3>
+                    <p id="question-text"></p>
+                </div>
+                <div class="answer-box">
+                    <label for="answer">답변:</label>
+                    <textarea id="answer" rows="8" placeholder="여기에 답변을 입력하세요..."></textarea>
+                </div>
+                <button id="submit-answer" class="btn btn-primary">답변 제출</button>
+                <div id="loading" style="display: none;">
+                    <p>AI가 답변을 평가하고 있습니다...</p>
+                </div>
+            </div>
+
+            <div id="feedback-section" style="display: none;">
+                <div class="card feedback-card">
+                    <h3>피드백:</h3>
+                    <div id="feedback-text"></div>
+                    <button id="next-question" class="btn btn-primary">다음 질문</button>
+                    <button id="view-results" class="btn btn-secondary" style="display: none;">결과 보기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
