@@ -3,6 +3,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import json
+import uuid
 from datetime import datetime
 
 # Load environment variables
@@ -14,7 +15,9 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-product
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Store interview data (in production, use a database)
+# Store interview data (NOTE: In-memory storage - not for production use!)
+# For production, implement proper database persistence (e.g., PostgreSQL, MongoDB)
+# and secure session management
 interviews = {}
 
 @app.route('/')
@@ -30,8 +33,8 @@ def start_interview():
         position = data.get('position', 'Software Engineer')
         level = data.get('level', 'Junior')
         
-        # Generate interview ID
-        interview_id = datetime.now().strftime('%Y%m%d%H%M%S')
+        # Generate secure interview ID using UUID
+        interview_id = str(uuid.uuid4())
         session['interview_id'] = interview_id
         
         # Initialize interview data
@@ -146,6 +149,8 @@ Return only the question text, no additional formatting or explanation."""
         question = response.choices[0].message.content.strip()
         return question
     except Exception as e:
+        # Log the error (in production, use proper logging)
+        print(f"Error generating question: {type(e).__name__}: {str(e)}")
         # Fallback questions if API fails
         fallback_questions = [
             f"Tell me about your experience with {position} role.",
@@ -186,6 +191,8 @@ Keep the feedback concise and professional (max 150 words)."""
         feedback = response.choices[0].message.content.strip()
         return feedback
     except Exception as e:
+        # Log the error (in production, use proper logging)
+        print(f"Error evaluating answer: {type(e).__name__}: {str(e)}")
         return f"Thank you for your answer. Your response has been recorded."
 
 if __name__ == '__main__':
