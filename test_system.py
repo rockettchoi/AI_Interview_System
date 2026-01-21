@@ -13,8 +13,8 @@ def test_imports():
     """Test that all required modules can be imported"""
     print("Testing imports...")
     try:
-        import flask
-        print("✅ Flask imported successfully")
+        import fastapi
+        print("✅ FastAPI imported successfully")
         
         import openai
         print("✅ OpenAI imported successfully")
@@ -38,15 +38,15 @@ def test_app_structure():
         import app
         print("✅ App module imported successfully")
         
-        # Check if Flask app is created
+        # Check if FastAPI app is created
         if hasattr(app, 'app'):
-            print("✅ Flask app instance found")
+            print("✅ FastAPI app instance found")
         else:
-            print("❌ Flask app instance not found")
+            print("❌ FastAPI app instance not found")
             return False
         
         # Check routes
-        routes = [rule.rule for rule in app.app.url_map.iter_rules()]
+        routes = [route.path for route in app.app.routes]
         expected_routes = ['/', '/start_interview', '/submit_answer', '/results']
         
         for route in expected_routes:
