@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>면접 결과 - AI 모의면접 시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 AI 모의면접 시스템</h1>
+            <p class="subtitle">면접 결과</p>
+        </header>
+
+        <div class="section">
+            <div class="card">
+                <h2>면접 정보</h2>
+                <p><strong>직무:</strong> {{ interview.position }}</p>
+                <p><strong>경력 수준:</strong> {{ interview.level }}</p>
+                <p><strong>총 질문 수:</strong> {{ interview.questions|length }}</p>
+            </div>
+
+            {% for i in range(interview.questions|length) %}
+            <div class="card">
+                <h3>질문 {{ i + 1 }}</h3>
+                <div class="question-box">
+                    <p><strong>Q:</strong> {{ interview.questions[i] }}</p>
+                </div>
+                <div class="answer-box">
+                    <p><strong>A:</strong> {{ interview.answers[i] }}</p>
+                </div>
+                {% if i < interview.feedback|length %}
+                <div class="feedback-card">
+                    <h4>피드백:</h4>
+                    <p>{{ interview.feedback[i] }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="card">
+                <a href="/" class="btn btn-primary">새로운 면접 시작</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
