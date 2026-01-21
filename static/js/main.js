@@ -1,7 +1,12 @@
 // Main JavaScript for AI Interview System
 
-let currentInterviewId = null;
-let currentQuestionNum = 1;
+// Interview state management
+const InterviewState = {
+    currentInterviewId: null,
+    currentQuestionNum: 1,
+    nextQuestion: null,
+    nextQuestionNum: null
+};
 
 // Start Interview
 document.getElementById('interview-form').addEventListener('submit', async (e) => {
@@ -22,8 +27,8 @@ document.getElementById('interview-form').addEventListener('submit', async (e) =
         const data = await response.json();
         
         if (data.success) {
-            currentInterviewId = data.interview_id;
-            currentQuestionNum = 1;
+            InterviewState.currentInterviewId = data.interview_id;
+            InterviewState.currentQuestionNum = 1;
             
             // Hide start section, show interview section
             document.getElementById('start-section').style.display = 'none';
@@ -79,8 +84,8 @@ document.getElementById('submit-answer').addEventListener('click', async () => {
                 document.getElementById('view-results').style.display = 'inline-block';
             } else {
                 // Store next question
-                window.nextQuestion = data.next_question;
-                window.nextQuestionNum = data.question_number;
+                InterviewState.nextQuestion = data.next_question;
+                InterviewState.nextQuestionNum = data.question_number;
                 document.getElementById('next-question').style.display = 'inline-block';
                 document.getElementById('view-results').style.display = 'none';
             }
@@ -102,8 +107,8 @@ document.getElementById('next-question').addEventListener('click', () => {
     document.getElementById('answer').value = '';
     
     // Update question
-    document.getElementById('question-num').textContent = window.nextQuestionNum;
-    document.getElementById('question-text').textContent = window.nextQuestion;
+    document.getElementById('question-num').textContent = InterviewState.nextQuestionNum;
+    document.getElementById('question-text').textContent = InterviewState.nextQuestion;
     
     // Hide feedback, enable submit
     document.getElementById('feedback-section').style.display = 'none';

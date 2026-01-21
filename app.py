@@ -17,7 +17,8 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Store interview data (NOTE: In-memory storage - not for production use!)
 # For production, implement proper database persistence (e.g., PostgreSQL, MongoDB)
-# and secure session management
+# and secure session management. Consider Redis for session storage with TTL.
+# Current limitation: Data lost on restart, no cleanup mechanism, potential memory leak
 interviews = {}
 
 @app.route('/')
