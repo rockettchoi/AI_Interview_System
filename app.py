@@ -344,7 +344,7 @@ The challenge should:
 Return ONLY the problem description. Do not include the solution."""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an expert technical interviewer. You create clear, solvable coding challenges."},
                 {"role": "user", "content": prompt}
@@ -396,7 +396,7 @@ Provide constructive feedback on the answer (and code if provided). Include:
 Keep the feedback concise and professional (max 200 words)."""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an expert interviewer providing feedback."},
                 {"role": "user", "content": prompt}
