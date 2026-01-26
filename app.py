@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -14,10 +14,10 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 
+# Initialize FastAPI app
 app = FastAPI()
 
 # Add Session Middleware
-# Flask used 'secret_key', here we pass it to the middleware
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -107,7 +107,9 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
             next_question = generate_question(
                 interview['position'], 
                 interview['level'], 
-                interview['current_question'] + 1
+                interview['current_question'] + 1,
+                interview['questions'],
+                interview['answers']
             )
             interview['questions'].append(next_question)
             
@@ -139,11 +141,19 @@ def results(request: Request):
     interview = interviews[interview_id]
     return templates.TemplateResponse("results.html", {"request": request, "interview": interview})
 
-def generate_question(position, level, question_number):
+def generate_question(position, level, question_number, previous_questions=None, previous_answers=None):
     """Generate interview question using OpenAI"""
     try:
+        context = ""
+        if previous_questions and previous_answers:
+            context = "\n\nPrevious context:\n"
+            for q, a in zip(previous_questions, previous_answers):
+                context += f"Q: {q}\nA: {a}\n"
+
         prompt = f"""You are an expert technical interviewer. Generate a {level} level interview question 
-for a {position} position. This is question number {question_number} out of 5.
+for a {position} position. This is question number {question_number} out of 5.{context}
+
+If there is previous context, try to make the new question flow naturally from the previous topic or dig deeper into the candidate's answer if appropriate. Otherwise, switch to a new relevant technical topic.
 
 The question should be:
 - Relevant to the position
@@ -210,8 +220,8 @@ Keep the feedback concise and professional (max 150 words)."""
     except Exception as e:
         # Log the error (in production, use proper logging)
         print(f"Error evaluating answer: {type(e).__name__}: {str(e)}")
-        return f"Thank you for your answer. Your response has been recorded."
+        return "Thank you for your answer. Your response has been recorded."
 
 if __name__ == '__main__':
     # Use reload=True equal to Flask's debug=True
-    uvicorn.run("app:app", host='0.0.0.0', port=5000, reload=True)
+    uvicorn.run("app:app", host='0.0.0.0', port=8000, reload=True)
