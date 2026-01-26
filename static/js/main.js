@@ -25,6 +25,27 @@ window.addEventListener('load', () => {
         
         // Set default value
         codeEditor.setValue("# 여기에 코드를 작성하세요\nprint('Hello, Interview!')");
+        
+        // Language Change Handler
+        document.getElementById('language-select').addEventListener('change', function() {
+            const lang = this.value;
+            let defaultCode = '';
+            
+            if (lang === 'python') {
+                codeEditor.setOption('mode', 'python');
+                defaultCode = "# 여기에 코드를 작성하세요\nprint('Hello, Interview!')";
+            } else if (lang === 'javascript') {
+                codeEditor.setOption('mode', 'javascript');
+                defaultCode = "// 여기에 코드를 작성하세요\nconsole.log('Hello, Interview!');";
+            } else if (lang === 'c') {
+                codeEditor.setOption('mode', 'text/x-csrc');
+                defaultCode = "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, Interview!\\n\");\n    return 0;\n}";
+            } else if (lang === 'java') {
+                codeEditor.setOption('mode', 'text/x-java');
+                defaultCode = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, Interview!\");\n    }\n}";
+            }
+            codeEditor.setValue(defaultCode);
+        });
     }
 });
 
@@ -242,7 +263,19 @@ document.getElementById('next-question').addEventListener('click', () => {
     
     // Clear code editor
     if (codeEditor) {
-        codeEditor.setValue(document.getElementById('language-select').value === 'python' ? "# 여기에 코드를 작성하세요" : "// 여기에 코드를 작성하세요");
+        const lang = document.getElementById('language-select').value;
+        let defaultCode = "";
+        if (lang === 'python') {
+            defaultCode = "# 여기에 코드를 작성하세요";
+        } else if (lang === 'c') {
+            defaultCode = "#include <stdio.h>\n\nint main() {\n    // 여기에 코드를 작성하세요\n    return 0;\n}";
+        } else if (lang === 'java') {
+            defaultCode = "public class Main {\n    public static void main(String[] args) {\n        // 여기에 코드를 작성하세요\n    }\n}";
+        } else {
+            // javascript and others
+            defaultCode = "// 여기에 코드를 작성하세요";
+        }
+        codeEditor.setValue(defaultCode);
         document.getElementById('code-output').textContent = '실행 결과가 여기에 표시됩니다...';
     }
     
