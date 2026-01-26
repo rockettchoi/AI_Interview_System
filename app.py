@@ -19,7 +19,7 @@ app = FastAPI()
 
 # Add Session Middleware
 app.add_middleware(
-    SessionMiddleware,
+    SessionMiddleware, 
     secret_key=os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
 )
 
