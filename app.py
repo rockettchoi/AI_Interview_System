@@ -269,14 +269,7 @@ Provide constructive feedback on the answer (and code if provided). Include:
 2. Areas for improvement
 3. Overall assessment (Good/Average/Needs Improvement)
 
-Keep the feedback concise and professional (max 20
-
-Provide constructive feedback on the answer. Include:
-1. Strengths of the answer
-2. Areas for improvement
-3. Overall assessment (Good/Average/Needs Improvement)
-
-Keep the feedback concise and professional (max 150 words)."""
+Keep the feedback concise and professional (max 200 words)."""
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
