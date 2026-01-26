@@ -30,7 +30,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+api_key = os.getenv('OPENAI_API_KEY')
+if not api_key:
+    print("Warning: OPENAI_API_KEY not found in environment variables. OpenAI features will fail.")
+client = OpenAI(api_key=api_key)
 
 # Store interview data (NOTE: In-memory storage - not for production use!)
 interviews = {}
@@ -186,7 +189,9 @@ Return only the question text, no additional formatting or explanation."""
             "How do you approach problem-solving in your work?",
             "What are your career goals for the next few years?"
         ]
-        return fallback_questions[question_number - 1]
+        # Use modulo to prevent IndexError if question_number exceeds fallback list length
+        safe_index = (question_number - 1) % len(fallback_questions)
+        return fallback_questions[safe_index]
 
 def evaluate_answer(question, answer, position, level):
     """Evaluate answer using OpenAI"""
