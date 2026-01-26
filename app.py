@@ -146,15 +146,30 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
         # Move to next question
         interview['current_question'] += 1
         
-        # Check if interview should continue (max 5 questions)
-        if interview['current_question'] < 5:
-            next_question = generate_question(
-                interview['position'], 
-                interview['level'], 
-                interview['current_question'] + 1,
-                interview['questions'],
-                interview['answers']
-            )
+        # Check if interview should continue (5 regular questions + 1 coding test)
+        if interview['current_question'] <= 5:
+            # If we just finished 5th question (index 4), now generate 6th item (index 5) 
+            # Wait, current_question starts at 1 in UI, but index is 0-based in list?
+            # Start: q=[] -> generate(..., 1). q=[Q1]. current_question=0.
+            # Submit Q1: current_question becomes 1. 
+            # If current_question == 5: It means we have finished Q5 (indices 0,1,2,3,4). Now we are at index 5.
+            
+            is_coding_test = False
+            if interview['current_question'] == 5:
+                next_question = generate_coding_test(
+                    interview['position'], 
+                    interview['level']
+                )
+                is_coding_test = True
+            else:
+                next_question = generate_question(
+                    interview['position'], 
+                    interview['level'], 
+                    interview['current_question'] + 1,
+                    interview['questions'],
+                    interview['answers']
+                )
+
             interview['questions'].append(next_question)
             
             return {
@@ -162,6 +177,7 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
                 'feedback': feedback,
                 'next_question': next_question,
                 'question_number': interview['current_question'] + 1,
+                'is_coding_test': is_coding_test,
                 'completed': False
             }
         else:
@@ -233,6 +249,35 @@ Return only the question text, no additional formatting or explanation."""
         # Use modulo to prevent IndexError if question_number exceeds fallback list length
         safe_index = (question_number - 1) % len(fallback_questions)
         return fallback_questions[safe_index]
+
+def generate_coding_test(position, level):
+    """Generate a coding challenge using OpenAI"""
+    try:
+        prompt = f"""You are an expert technical interviewer. Generate a practical coding challenge 
+for a {level} level {position} position.
+
+The challenge should:
+1. Be solvable within 10-15 minutes.
+2. Require writing a specific function or small script.
+3. Test algorithmic thinking or API usage relevant to the role.
+4. Include 2-3 specific test cases in the description.
+
+Return ONLY the problem description. Do not include the solution."""
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert technical interviewer. You create clear, solvable coding challenges."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error generating coding test: {str(e)}")
+        return f"Write a function to reverse a string in Python, but without using the slicing syntax [::-1]. Explain your approach."
 
 def evaluate_answer(question, answer, position, level, code=None, code_output=None):
     """Evaluate answer using OpenAI"""
