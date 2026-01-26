@@ -205,16 +205,7 @@ document.getElementById('submit-answer').addEventListener('click', async () => {
             if (data.completed) {
                 // Interview completed
                 document.getElementById('next-question').style.display = 'none';
-       Clear code editor
-    if (codeEditor) {
-        codeEditor.setValue(document.getElementById('language-select').value === 'python' ? "# 여기에 코드를 작성하세요" : "// 여기에 코드를 작성하세요");
-        document.getElementById('code-output').textContent = '실행 결과가 여기에 표시됩니다...';
-    }
-    
-    // Switch back to text tab by default
-    switchTab('text');
-    
-    //          document.getElementById('view-results').style.display = 'inline-block';
+                document.getElementById('view-results').style.display = 'inline-block';
             } else {
                 // Store next question
                 InterviewState.nextQuestion = data.next_question;
@@ -238,6 +229,15 @@ document.getElementById('submit-answer').addEventListener('click', async () => {
 document.getElementById('next-question').addEventListener('click', () => {
     // Clear previous answer
     document.getElementById('answer').value = '';
+    
+    // Clear code editor
+    if (codeEditor) {
+        codeEditor.setValue(document.getElementById('language-select').value === 'python' ? "# 여기에 코드를 작성하세요" : "// 여기에 코드를 작성하세요");
+        document.getElementById('code-output').textContent = '실행 결과가 여기에 표시됩니다...';
+    }
+    
+    // Switch back to text tab by default
+    switchTab('text');
     
     // Update question
     document.getElementById('question-num').textContent = InterviewState.nextQuestionNum;
