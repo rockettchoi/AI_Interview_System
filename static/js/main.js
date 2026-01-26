@@ -210,8 +210,18 @@ document.getElementById('submit-answer').addEventListener('click', async () => {
                 // Store next question
                 InterviewState.nextQuestion = data.next_question;
                 InterviewState.nextQuestionNum = data.question_number;
+                InterviewState.isCodingTest = data.is_coding_test; // Store coding test flag
+                
                 document.getElementById('next-question').style.display = 'inline-block';
                 document.getElementById('view-results').style.display = 'none';
+                
+                if (data.is_coding_test) {
+                    document.getElementById('next-question').textContent = "코딩 테스트 시작";
+                    document.getElementById('next-question').className = "btn btn-success";
+                } else {
+                    document.getElementById('next-question').textContent = "다음 질문";
+                    document.getElementById('next-question').className = "btn btn-primary";
+                }
             }
         } else {
             alert('답변 제출에 실패했습니다: ' + data.error);
@@ -236,11 +246,18 @@ document.getElementById('next-question').addEventListener('click', () => {
         document.getElementById('code-output').textContent = '실행 결과가 여기에 표시됩니다...';
     }
     
-    // Switch back to text tab by default
-    switchTab('text');
+    // Switch tab based on question type
+    if (InterviewState.isCodingTest) {
+         switchTab('code');
+         // Update question header for special stage
+         document.getElementById('question-num').parentElement.innerHTML = '<span class="question-number">📝 코딩 테스트</span>';
+    } else {
+         switchTab('text');
+         // Restore regular header format if needed (though we only go forward)
+         document.getElementById('question-num').parentElement.innerHTML = '<span class="question-number">질문 <span id="question-num">' + InterviewState.nextQuestionNum + '</span>/5</span>';
+    }
     
-    // Update question
-    document.getElementById('question-num').textContent = InterviewState.nextQuestionNum;
+    // Update question text
     document.getElementById('question-text').textContent = InterviewState.nextQuestion;
     
     // Hide feedback, enable submit
