@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 import uuid
 import uvicorn
+import requests
 from datetime import datetime
 
 # Load environment variables
@@ -43,8 +44,15 @@ class StartInterviewRequest(BaseModel):
     position: str = 'Software Engineer'
     level: str = 'Junior'
 
+class RunCodeRequest(BaseModel):
+    code: str
+    language: str
+
 class SubmitAnswerRequest(BaseModel):
     answer: str
+    code: str = None
+    language: str = None
+    code_output: str = None
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
@@ -82,6 +90,32 @@ def start_interview(request: Request, data: StartInterviewRequest):
     except Exception as e:
         return JSONResponse(status_code=500, content={'success': False, 'error': str(e)})
 
+@app.post("/run_code")
+def run_code(data: RunCodeRequest):
+    """Execute code using Piston API"""
+    try:
+        # Piston API execution
+        piston_lang = data.language
+        version = "*"
+        if piston_lang == "python": 
+            version = "3.10.0"
+        elif piston_lang == "javascript":
+            version = "18.15.0"
+
+        response = requests.post("https://emkc.org/api/v2/piston/execute", json={
+            "language": piston_lang,
+            "version": version,
+            "files": [{"content": data.code}]
+        })
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return JSONResponse(status_code=response.status_code, content={"error": "Execution failed"})
+            
+    except Exception as e:
+        return JSONResponse(status_code=500, content={'error': str(e)})
+
 @app.post("/submit_answer")
 def submit_answer(request: Request, data: SubmitAnswerRequest):
     """Submit an answer and get feedback"""
@@ -99,7 +133,14 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
         interview['answers'].append(data.answer)
         
         # Get AI feedback
-        feedback = evaluate_answer(question, data.answer, interview['position'], interview['level'])
+        feedback = evaluate_answer(
+            question, 
+            data.answer, 
+            interview['position'], 
+            interview['level'],
+            data.code,
+            data.code_output
+        )
         interview['feedback'].append(feedback)
         
         # Move to next question
@@ -193,15 +234,42 @@ Return only the question text, no additional formatting or explanation."""
         safe_index = (question_number - 1) % len(fallback_questions)
         return fallback_questions[safe_index]
 
-def evaluate_answer(question, answer, position, level):
+def evaluate_answer(question, answer, position, level, code=None, code_output=None):
     """Evaluate answer using OpenAI"""
     try:
+        code_context = ""
+        if code:
+            code_context = f"""
+Candidate also submitted the following code:
+```
+{code}
+```
+Code Execution Output:
+```
+{code_output}
+```
+
+Please evaluate the code quality, including:
+- Correctness (does it solve the problem if applicable)
+- Time and Space Complexity analysis
+- Code Style and Pythonic/Idiomatic usage
+- Presence and quality of comments
+"""
+
         prompt = f"""You are an expert interviewer evaluating a candidate's answer.
 
 Position: {position}
 Level: {level}
 Question: {question}
 Answer: {answer}
+{code_context}
+
+Provide constructive feedback on the answer (and code if provided). Include:
+1. Strengths of the answer/code
+2. Areas for improvement
+3. Overall assessment (Good/Average/Needs Improvement)
+
+Keep the feedback concise and professional (max 20
 
 Provide constructive feedback on the answer. Include:
 1. Strengths of the answer
