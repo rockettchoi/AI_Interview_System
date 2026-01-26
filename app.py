@@ -12,6 +12,17 @@ import uvicorn
 import requests
 from datetime import datetime
 
+# LangChain Imports
+from langchain_openai import ChatOpenAI
+from langchain.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import LLMChain
+
 # Load environment variables
 load_dotenv()
 
@@ -35,6 +46,9 @@ api_key = os.getenv('OPENAI_API_KEY')
 if not api_key:
     print("Warning: OPENAI_API_KEY not found in environment variables. OpenAI features will fail.")
 client = OpenAI(api_key=api_key)
+
+# Initialize LangChain ChatOpenAI
+llm = ChatOpenAI(api_key=api_key, model="gpt-3.5-turbo", temperature=0.7)
 
 # Store interview data (NOTE: In-memory storage - not for production use!)
 interviews = {}
@@ -75,11 +89,12 @@ def start_interview(request: Request, data: StartInterviewRequest):
             'answers': [],
             'feedback': [],
             'current_question': 0,
-            'started_at': datetime.now().isoformat()
+            'started_at': datetime.now().isoformat(),
+            'chat_history': ConversationBufferMemory(return_messages=True) # Initialize LangChain memory
         }
         
         # Generate first question
-        question = generate_question(data.position, data.level, 1)
+        question = generate_question_langchain(interview_id, data.position, data.level, 1)
         interviews[interview_id]['questions'].append(question)
         
         return {
@@ -130,7 +145,18 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
         question = interview['questions'][current_q]
         
         # Store answer
-        interview['answers'].append(data.answer)
+
+        # Update Memory with User Answer
+        if interview.get('chat_history'):
+             # Add the last question asked by AI and the answer given by user to memory
+             # We need to retrieve the last question.
+             # current_q index points to the question index in 'questions' list.
+             # Note that 'questions' list has questions: [Q1, Q2, ...]
+             # The user is submitting answer for 'questions[current_q-1] if we incremented? 
+             # Wait, logic in start_interview: current_question = 0. Append Q1.
+             # So Q1 is at index 0. user submits. current_question is 0.
+             last_question = interview['questions'][current_q]
+             interview['chat_history'].save_context({"input": last_question}, {"output": data.answer})
         
         # Get AI feedback
         feedback = evaluate_answer(
@@ -149,10 +175,6 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
         # Check if interview should continue (5 regular questions + 1 coding test)
         if interview['current_question'] <= 5:
             # If we just finished 5th question (index 4), now generate 6th item (index 5) 
-            # Wait, current_question starts at 1 in UI, but index is 0-based in list?
-            # Start: q=[] -> generate(..., 1). q=[Q1]. current_question=0.
-            # Submit Q1: current_question becomes 1. 
-            # If current_question == 5: It means we have finished Q5 (indices 0,1,2,3,4). Now we are at index 5.
             
             is_coding_test = False
             if interview['current_question'] == 5:
@@ -162,11 +184,11 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
                 )
                 is_coding_test = True
             else:
-                next_question = generate_question(
+                next_question = generate_question_langchain(
+                    interview_id,
                     interview['position'], 
                     interview['level'], 
-                    interview['current_question'] + 1,
-                    interview['questions'],
+                    interview['current_question'] + 1'],
                     interview['answers']
                 )
 
@@ -193,8 +215,65 @@ def submit_answer(request: Request, data: SubmitAnswerRequest):
 
 @app.get("/results", response_class=HTMLResponse)
 def results(request: Request):
-    """Show interview results"""
-    interview_id = request.session.get('interview_id')
+    """Show interview_langchain(interview_id, position, level, question_number):
+    """Generate interview question using LangChain with Memory"""
+    try:
+        current_memory = interviews[interview_id].get('chat_history')
+        if not current_memory:
+             # Fallback if memory is lost (shouldn't happen with in-memory dict)
+             current_memory = ConversationBufferMemory(return_messages=True)
+
+        prompt = ChatPromptTemplate(
+            messages=[
+                SystemMessagePromptTemplate.from_template(
+                    f"You are an expert technical interviewer for a {level} {position} role. "
+                    "Your goal is to assess the candidate's technical skills, problem-solving abilities, and cultural fit. "
+                    f"This is question number {question_number} out of 5."
+                ),
+                # The `variable_name` here depends on what `ConversationBufferMemory` outputs.
+                # Default is usually "history" or "chat_history". We will use MessagesPlaceholder.
+                MessagesPlaceholder(variable_name="chat_history"),
+                HumanMessagePromptTemplate.from_template(
+                    "Based on the candidate's previous answers (if any), generate the next interview question. "
+                    "If the previous answer was interesting or lacked detail, ask a follow-up question. "
+                    "Otherwise, move to a new relevant technical topic.\n\n"
+                    "The question should be:\n"
+                    "- Relevant to the position\n"
+                    "- Appropriate for the experience level\n"
+                    "- Clear and concise\n"
+                    "- Technical but fair\n\n"
+                    "Return ONLY the question text."
+                )
+            ]
+        )
+        
+        conversation = LLMChain(
+            llm=llm,
+            prompt=prompt,
+            verbose=True,
+            memory=current_memory
+        )
+        
+        # In LLMChain with memory, we often just pass an empty input if the prompt relies on history + system prompt
+        # But we need to trigger it. We can pass a dummy input or structure the prompt to take an input.
+        # Let's adjust the prompt to take a "trigger" or just run it.
+        # Actually, since we are manually saving context to memory in `submit_answer`, 
+        # we can just ask it to "Generate next question".
+        
+        response = conversation.invokeb({"input": "Generate the next question."})
+        # Note: LLMChain.run or invoke might differ by version. invoke returns dict 'text'.
+        # Using `predict` is often easier for simple string output.
+        
+        question = response['text'].strip()
+        return question
+
+    except Exception as e:
+        print(f"Error generating question with LangChain: {str(e)}")
+        # Fallback to old method or hardcoded
+        return generate_question(position, level, question_number)
+
+def generate_question(position, level, question_number, previous_questions=None, previous_answers=None):
+    """Generate interview question using OpenAI (Legacy/Fallback)ew_id')
     if not interview_id or interview_id not in interviews:
         return templates.TemplateResponse("error.html", {"request": request, "message": "Interview session not found"})
     
@@ -224,7 +303,7 @@ The question should be:
 Return only the question text, no additional formatting or explanation."""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an expert technical interviewer."},
                 {"role": "user", "content": prompt}
