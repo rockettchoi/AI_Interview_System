@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
     <style>
         .CodeMirror { height: 300px; border-radius: 4px; font-size: 14px; }
@@ -85,6 +86,8 @@
                             <select id="language-select" class="form-control" style="width: auto; display: inline-block; padding: 5px;">
                                 <option value="python">Python</option>
                                 <option value="javascript">JavaScript</option>
+                                <option value="c">C</option>
+                                <option value="java">Java</option>
                             </select>
                             <button type="button" id="run-code-btn" class="btn btn-secondary" style="padding: 5px 15px;">▶ 코드 실행</button>
                         </div>
