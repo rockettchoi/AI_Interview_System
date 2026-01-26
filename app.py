@@ -116,6 +116,10 @@ def run_code(data: RunCodeRequest):
             version = "3.10.0"
         elif piston_lang == "javascript":
             version = "18.15.0"
+        elif piston_lang == "c":
+            version = "10.2.0"
+        elif piston_lang == "java":
+            version = "15.0.2"
 
         response = requests.post("https://emkc.org/api/v2/piston/execute", json={
             "language": piston_lang,
