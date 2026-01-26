@@ -115,6 +115,6 @@
         </div>
     </div>
 
-    <script src="{{ request.url_for('static', path='js/main.js') }}"></script>
+    <script src="{{ request.url_for('static', path='js/main.js') }}?v={{ range(1, 10000) | random }}"></script>
 </body>
 </html>
