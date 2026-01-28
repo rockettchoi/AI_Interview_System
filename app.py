@@ -48,7 +48,7 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 # Initialize LangChain ChatOpenAI
-llm = ChatOpenAI(api_key=api_key, model="gpt-3.5-turbo", temperature=0.7)
+llm = ChatOpenAI(api_key=api_key, model="gpt-4o", temperature=0.7)
 
 # Store interview data (NOTE: In-memory storage - not for production use!)
 interviews = {}
